@@ -45,6 +45,7 @@ n'y est pas encore, n'hesite pas a partager ton retour pour qu'on l'ajoute : le 
 | Samsung Galaxy S20 FE | Compatible (teste sur PLA et ABS) | Retour forum - Zetif |
 | Xiaomi 15C | Compatible | Teste par l'auteur (Tomyn) |
 | Redmi Note 12 | Compatible (teste sur TPU for AMS) | Retour forum - pascal_lb |
+| Redmi Note 11S (Android 13) | Compatible (teste sur PLA Basic, lecture complete, tag sain) | Retour forum - Tchoum |
 
 ## Comment obtenir le .apk (le plus simple : sans rien installer)
 
