@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bambu_teal">#26C9BC</color>
+    <color name="bambu_teal_fonce">#00A99D</color>
+    <color name="bambu_orange">#FF8A42</color>
+    <color name="fond_clair">#14201F</color>
+    <color name="carte_blanc">#1E2C2A</color>
+    <color name="texte_principal">#EAF2F1</color>
+    <color name="texte_secondaire">#9FB3B1</color>
+    <color name="bordure_legere">#2E403E</color>
+    <color name="succes_vert">#4BC17D</color>
+</resources>
