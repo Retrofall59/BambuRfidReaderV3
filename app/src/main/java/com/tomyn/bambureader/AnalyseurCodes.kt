@@ -17,7 +17,9 @@ data class ResultatAnalyse(
  */
 object AnalyseurCodes {
 
-    private val REGEX_DIESE = Regex("#\\s*([0-9A-Za-z]{6})(?![0-9A-Za-z])")
+    // 6 caracteres apres le '#', avec au plus un espace apres chacun des 5 premiers : la lecture d'une photo
+    // coupe parfois un code en deux ("#B1 B3B3"). Le 6e caractere est suivi de rien d'alphanumerique.
+    private val REGEX_DIESE = Regex("#\\s*((?:[0-9A-Za-z]\\s?){5}[0-9A-Za-z])(?![0-9A-Za-z])")
     private val REGEX_HEX = Regex("^[0-9A-Fa-f]{6}$")
     private val SEPARATEURS = Regex("[;,:|\\t]+")
     private val ESPACES = Regex("\\s+")
@@ -34,7 +36,8 @@ object AnalyseurCodes {
             if (correspondances.isNotEmpty()) {
                 val valides = mutableListOf<Pair<IntRange, String>>()
                 for (m in correspondances) {
-                    val hex = normaliser(m.groupValues[1], depuisPhoto)
+                    val brut = m.groupValues[1].replace(" ", "")
+                    val hex = normaliser(brut, depuisPhoto)
                     if (hex != null) valides.add(m.range to hex) else illisibles.add("#" + m.groupValues[1])
                 }
                 // Un seul code sur la ligne : le reste du texte est le nom. Plusieurs : impossible d'associer les noms.
