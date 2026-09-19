@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0
+- Corrige : les exports passent par le selecteur Android "Enregistrer sous" (Telechargements, Drive...). Avant, les fichiers restaient dans Android/data, inaccessible depuis Android 11.
+- Nouveau : bouton "Exporter" dans l'historique des scans (fichier CSV).
+- Change : l'APK telecharge depuis GitHub porte sa version dans son nom (BambuRfidReader-v2.0.apk).
+
 ## 1.9
 - Nouveau : signature fixe de l'APK. A partir de cette version, les mises a jour s'installent PAR-DESSUS l'ancienne, sans desinstaller.
 - Attention : pour passer de la 1.8 (ou avant) a la 1.9, il faut desinstaller une derniere fois (la signature change). Copie d'abord `historique_scans.csv` et le dossier `dumps_bambu` (dans Android/data/com.tomyn.bambureader/files/) : ils sont supprimes avec l'appli.

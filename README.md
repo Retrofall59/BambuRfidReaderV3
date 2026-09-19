@@ -64,7 +64,7 @@ Ce projet est configure pour se compiler automatiquement sur les serveurs de Git
 4. Valide l'envoi (bouton vert "Commit changes")
 5. Va dans l'onglet "Actions" du depot en haut de la page
 6. Une compilation se lance automatiquement (ca prend 2-3 minutes)
-7. Une fois termine (coche verte), clique dessus, puis clique sur "BambuRfidReader-apk"
+7. Une fois termine (coche verte), clique dessus, puis clique sur "BambuRfidReader-v..." (le nom porte la version)
    tout en bas de la page pour telecharger le fichier .apk
 
 8. Transfere ce .apk sur ton telephone (mail, cle USB, Google Drive...) et installe-le
@@ -93,8 +93,9 @@ Ce projet est configure pour se compiler automatiquement sur les serveurs de Git
 3. L'appli affiche le filament en clair (matiere, couleur, poids, temperatures)
 4. Si elle indique "Lecture incomplete", recolle le telephone sans bouger : la position de
    l'antenne NFC varie beaucoup d'un modele a l'autre, il faut parfois tatonner
-5. Bouton "Exporter le dernier dump" pour sauvegarder le detail technique complet dans un .txt
-   (dossier Android/data/com.tomyn.bambureader/files/dumps_bambu/)
+5. Bouton "Exporter le dernier dump" pour sauvegarder le detail technique complet dans un .txt :
+   Android te demande ou l'enregistrer (Telechargements, Drive...). Meme chose pour l'historique
+   des scans (bouton "Exporter" dans la fenetre Historique).
 
 ## Diagnostic du tag (sain / limite / defaillant)
 

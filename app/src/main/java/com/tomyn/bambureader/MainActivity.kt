@@ -82,6 +82,8 @@ class MainActivity : AppCompatActivity() {
     private var dernierTempBuseTexte: String? = null
     private var dernierTempPlateau: Int? = null
     private var animationsPulse: List<ObjectAnimator> = emptyList()
+    // Contenu en attente pendant que l'utilisateur choisit ou enregistrer le fichier (selecteur Android)
+    private var contenuAExporter: String? = null
     private lateinit var btnReglagesNfc: Button
     // Etat du dernier scan, pour le rapport de compatibilite
     private var dernierLecture: ResultatLecture? = null
@@ -95,6 +97,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        contenuAExporter = savedInstanceState?.getString("contenuAExporter")
         setContentView(R.layout.activity_main)
 
         txtResultat = findViewById(R.id.txtResultat)
@@ -588,6 +591,9 @@ class MainActivity : AppCompatActivity() {
                 .setTitle("Historique des scans (${lignes.size})")
                 .setMessage(texteAffiche)
                 .setPositiveButton("Fermer", null)
+                .setNeutralButton("Exporter") { _, _ ->
+                    exporterVers("historique_scans.csv", fichier.readText(), "text/csv")
+                }
                 .setNegativeButton("Vider l'historique") { _, _ ->
                     fichier.delete()
                     Toast.makeText(this, "Historique efface.", Toast.LENGTH_SHORT).show()
@@ -757,6 +763,7 @@ class MainActivity : AppCompatActivity() {
     // Grille d'etiquettes sur une page A4 (595x842 points) : 3 colonnes x 7 lignes = 21
     // etiquettes par page, a decouper aux ciseaux une fois imprimees.
     companion object {
+        const val CODE_EXPORT = 4711
         const val COLONNES_GRILLE = 3
         const val LIGNES_GRILLE = 7
         const val ETIQUETTES_PAR_PAGE = COLONNES_GRILLE * LIGNES_GRILLE
@@ -851,15 +858,51 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "Aucun dump a exporter pour l'instant, scanne d'abord un tag.", Toast.LENGTH_SHORT).show()
             return
         }
+        val nomFichier = "dump_" + SimpleDateFormat("yyyyMMdd_HHmmss", Locale.FRANCE).format(Date()) + ".txt"
+        exporterVers(nomFichier, dernierDumpTexte, "text/plain")
+    }
+
+    /**
+     * Ouvre le selecteur Android "Enregistrer sous" (Telechargements, Drive...) : le fichier atterrit la ou l'utilisateur
+     * peut le retrouver. L'ancien dossier Android/data n'est plus accessible depuis Android 11.
+     */
+    private fun exporterVers(nomSuggere: String, contenu: String, typeMime: String) {
+        contenuAExporter = contenu
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = typeMime
+            putExtra(Intent.EXTRA_TITLE, nomSuggere)
+        }
         try {
-            val dossier = File(getExternalFilesDir(null), "dumps_bambu")
-            if (!dossier.exists()) dossier.mkdirs()
-            val nomFichier = "dump_" + SimpleDateFormat("yyyyMMdd_HHmmss", Locale.FRANCE).format(Date()) + ".txt"
-            val fichier = File(dossier, nomFichier)
-            fichier.writeText(dernierDumpTexte)
-            Toast.makeText(this, "Dump enregistre : ${fichier.absolutePath}", Toast.LENGTH_LONG).show()
+            startActivityForResult(intent, CODE_EXPORT)
+        } catch (e: Exception) {
+            contenuAExporter = null
+            Toast.makeText(this, "Impossible d'ouvrir le selecteur de fichiers : ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != CODE_EXPORT) return
+        val contenu = contenuAExporter
+        contenuAExporter = null
+        val uri = data?.data
+        if (resultCode != RESULT_OK || uri == null) return   // export annule
+        if (contenu == null) {
+            Toast.makeText(this, "Export interrompu (l'appli a ete relancee), recommence.", Toast.LENGTH_LONG).show()
+            return
+        }
+        try {
+            val flux = contentResolver.openOutputStream(uri) ?: throw IOException("fichier inaccessible")
+            flux.use { it.write(contenu.toByteArray(Charsets.UTF_8)) }
+            Toast.makeText(this, "Fichier enregistre.", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
             Toast.makeText(this, "Erreur export : ${e.message}", Toast.LENGTH_LONG).show()
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        contenuAExporter?.let { outState.putString("contenuAExporter", it) }
     }
 }
