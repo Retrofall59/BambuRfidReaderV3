@@ -444,6 +444,29 @@ object NomCouleur {
         return if (traduction != null) "$nomAnglais ($traduction)" else nomAnglais
     }
 
+    /** Nom officiel anglais + traduction francaise entre parentheses quand elle existe. */
+    fun nomBilingue(nomAnglais: String): String = avecTraduction(nomAnglais)
+
+    /**
+     * Liste des couleurs d'une gamme Bambu qui possede une table de references produit verifiee
+     * ("PLA Basic" ou "PLA Matte"). Les noms viennent de la table officielle ci-dessus, les references de la table produit.
+     */
+    fun gammeBambu(gamme: String): List<CouleurBambu> {
+        val references = when (gamme) {
+            "PLA Basic" -> referencesProduitPlaBasic
+            "PLA Matte" -> referencesProduitPlaMatte
+            else -> return emptyList()
+        }
+        return references.map { (hex, ref) ->
+            val options = tableOfficielle[hex].orEmpty()
+            val nom = options.firstOrNull { it.first == gamme }?.second
+                ?: options.singleOrNull { it.first.isEmpty() }?.second
+                ?: options.firstOrNull()?.second
+                ?: hex
+            CouleurBambu(gamme, nom, hex, ref)
+        }
+    }
+
     // Pour l'etiquette imprimable : juste le francais (ou l'anglais seul si pas de traduction connue)
     private fun traductionSeule(nomAnglais: String): String {
         return traductions[nomAnglais] ?: nomAnglais

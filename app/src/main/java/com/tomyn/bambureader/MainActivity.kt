@@ -7,11 +7,13 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.res.ColorStateList
+import android.content.res.Configuration
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.drawable.GradientDrawable
 import android.graphics.pdf.PdfDocument
 import android.nfc.NfcAdapter
 import android.nfc.Tag
@@ -32,6 +34,9 @@ import android.print.PrintDocumentInfo
 import android.print.PrintManager
 import android.text.InputFilter
 import android.text.InputType
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 import android.view.Gravity
 import android.view.View
 import android.view.animation.AnimationUtils
@@ -84,6 +89,8 @@ class MainActivity : AppCompatActivity() {
     private var animationsPulse: List<ObjectAnimator> = emptyList()
     // Contenu en attente pendant que l'utilisateur choisit ou enregistrer le fichier (selecteur Android)
     private var contenuAExporter: String? = null
+    // Texte de la recherche de couleurs, conserve pendant le choix d'une photo
+    private var texteRechercheEnCours: String = ""
     private lateinit var btnReglagesNfc: Button
     // Etat du dernier scan, pour le rapport de compatibilite
     private var dernierLecture: ResultatLecture? = null
@@ -515,31 +522,207 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun afficherRechercheCouleur() {
-        val champSaisie = EditText(this)
-        champSaisie.hint = "Ex : FF6A13 ou #FF6A13"
-        champSaisie.inputType = InputType.TYPE_CLASS_TEXT
-        champSaisie.filters = arrayOf(InputFilter.LengthFilter(7))
+    /**
+     * Recherche de l'equivalent Bambu d'une ou plusieurs couleurs (autre marque) : codes colles ou tapes,
+     * ou lus sur une photo de la fiche du fabricant.
+     */
+    private fun afficherRechercheCouleur(message: String? = null) {
+        val champ = EditText(this)
+        champ.hint = "Un code par ligne, avec ou sans nom :\nRed #CE3845\n#FF6A13\n009639"
+        champ.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+        champ.setText(texteRechercheEnCours)
+        champ.minLines = 6
+        champ.maxLines = 12
+        champ.gravity = Gravity.TOP or Gravity.START
+        champ.isVerticalScrollBarEnabled = true
 
         val conteneur = LinearLayout(this)
         conteneur.orientation = LinearLayout.VERTICAL
         val paddingPx = (20 * resources.displayMetrics.density).toInt()
         conteneur.setPadding(paddingPx, paddingPx, paddingPx, 0)
-        conteneur.addView(champSaisie)
+        conteneur.addView(champ)
 
         AlertDialog.Builder(this)
-            .setTitle("Chercher une couleur")
-            .setMessage("Colle le code hexadecimal d'une couleur (fournisseur tiers par exemple) pour trouver les teintes Bambu officielles les plus proches.")
+            .setTitle("Chercher des couleurs")
+            .setMessage(message ?: "Colle un ou plusieurs codes hexadecimaux (un par ligne, avec ou sans nom), ou lis-les depuis une photo de la fiche du fabricant.")
             .setView(conteneur)
             .setPositiveButton("Chercher") { _, _ ->
-                val saisie = champSaisie.text.toString().trim().removePrefix("#").uppercase()
-                if (saisie.length != 6 || !saisie.matches(Regex("[0-9A-F]{6}"))) {
-                    Toast.makeText(this, "Code hexadecimal invalide (attendu : 6 caracteres, ex FF6A13)", Toast.LENGTH_LONG).show()
-                    return@setPositiveButton
-                }
-                afficherResultatsRecherche(saisie)
+                texteRechercheEnCours = champ.text.toString()
+                lancerRechercheDepuisTexte(texteRechercheEnCours)
+            }
+            .setNeutralButton("Photo") { _, _ ->
+                texteRechercheEnCours = champ.text.toString()
+                choisirPhoto()
             }
             .setNegativeButton("Annuler", null)
+            .show()
+    }
+
+    private fun lancerRechercheDepuisTexte(texte: String) {
+        val analyse = AnalyseurCodes.analyser(texte)
+        if (analyse.codes.isEmpty()) {
+            afficherRechercheCouleur("Aucun code valide trouve : 6 caracteres hexadecimaux attendus (ex FF6A13).")
+            return
+        }
+        if (analyse.codes.size == 1 && analyse.illisibles.isEmpty()) {
+            afficherResultatsRecherche(analyse.codes[0].hex)
+            return
+        }
+        val lignes = analyse.codes.map { EquivalenceBambu.chercher(it.nom, it.hex) }
+        afficherResultatsLot(lignes, analyse.illisibles)
+    }
+
+    private fun choisirPhoto() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "image/*"
+        }
+        try {
+            startActivityForResult(intent, CODE_PHOTO)
+        } catch (e: Exception) {
+            afficherRechercheCouleur("Impossible d'ouvrir le choix de photo : ${e.message}")
+        }
+    }
+
+    private fun traiterPhotoChoisie(resultCode: Int, data: Intent?) {
+        val uri = data?.data
+        if (resultCode != RESULT_OK || uri == null) {
+            afficherRechercheCouleur()
+            return
+        }
+        Toast.makeText(this, "Lecture de la photo...", Toast.LENGTH_SHORT).show()
+        LecteurPhoto.lireTexte(
+            this, uri,
+            onTexte = { texte -> runOnUiThread { integrerTexteDePhoto(texte) } },
+            onErreur = { msg -> runOnUiThread { afficherRechercheCouleur("Lecture de la photo impossible : $msg") } }
+        )
+    }
+
+    private fun integrerTexteDePhoto(texte: String) {
+        val analyse = AnalyseurCodes.analyser(texte, depuisPhoto = true)
+        if (analyse.codes.isEmpty()) {
+            afficherRechercheCouleur("Aucun code hexadecimal reconnu sur la photo. Cadre le tableau de face, bien eclaire, sans reflet.")
+            return
+        }
+        val lus = analyse.codes.joinToString("\n") { c -> (c.nom?.let { "$it " } ?: "") + "#" + c.hex }
+        val existant = texteRechercheEnCours.trim()
+        texteRechercheEnCours = if (existant.isEmpty()) lus else existant + "\n" + lus
+        var message = "${analyse.codes.size} code(s) lu(s) sur la photo. Verifie-les avant de chercher : 8 et B, 0 et O, 1 et I se confondent facilement."
+        if (analyse.illisibles.isNotEmpty()) {
+            message += " ${analyse.illisibles.size} lecture(s) douteuse(s) ignoree(s) : ${analyse.illisibles.joinToString(", ")}."
+        }
+        afficherRechercheCouleur(message)
+    }
+
+    private fun copierTexte(etiquette: String, texte: String) {
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText(etiquette, texte))
+        Toast.makeText(this, "Copie dans le presse-papiers.", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun pastilleCouleur(hex: String): View {
+        val densite = resources.displayMetrics.density
+        val taille = (22 * densite).toInt()
+        val vue = View(this)
+        val params = LinearLayout.LayoutParams(taille, taille)
+        params.setMargins(0, (2 * densite).toInt(), (10 * densite).toInt(), 0)
+        vue.layoutParams = params
+        val fond = GradientDrawable()
+        fond.setColor(Color.parseColor("#$hex"))
+        fond.setStroke(maxOf(1, densite.toInt()), 0xFFB4B2A9.toInt())
+        fond.cornerRadius = taille / 5f
+        vue.background = fond
+        return vue
+    }
+
+    private fun couleurNiveau(niveau: NiveauEquivalence, nuit: Boolean): Int = when (niveau) {
+        NiveauEquivalence.PROCHE -> if (nuit) 0xFF81C784.toInt() else 0xFF2E7D32.toInt()
+        NiveauEquivalence.APPROXIMATIF -> if (nuit) 0xFFFFB74D.toInt() else 0xFFB26A00.toInt()
+        NiveauEquivalence.AUCUN -> if (nuit) 0xFFE57373.toInt() else 0xFFB3261E.toInt()
+    }
+
+    private fun ligneEquivalent(gamme: String, e: Equivalent, nuit: Boolean): View {
+        val densite = resources.displayMetrics.density
+        val rangee = LinearLayout(this)
+        rangee.orientation = LinearLayout.HORIZONTAL
+        rangee.setPadding(0, (6 * densite).toInt(), 0, 0)
+        rangee.addView(pastilleCouleur(e.couleur.hex))
+
+        val ligne1 = "$gamme : ${NomCouleur.nomBilingue(e.couleur.nomEn)}"
+        val libelle = e.niveau.libelle
+        val ligne2 = "ref. ${e.couleur.ref}  -  $libelle  -  ecart ${EquivalenceBambu.formaterEcart(e.ecart)}"
+        val texte = SpannableStringBuilder(ligne1 + "\n" + ligne2)
+        val debut = ligne1.length + 1 + ligne2.indexOf(libelle)
+        texte.setSpan(ForegroundColorSpan(couleurNiveau(e.niveau, nuit)), debut, debut + libelle.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+
+        val vue = TextView(this)
+        vue.text = texte
+        vue.textSize = 13f
+        rangee.addView(vue)
+        return rangee
+    }
+
+    private fun blocEquivalence(l: LigneEquivalence, nuit: Boolean): View {
+        val densite = resources.displayMetrics.density
+        val bloc = LinearLayout(this)
+        bloc.orientation = LinearLayout.VERTICAL
+        bloc.setPadding(0, (10 * densite).toInt(), 0, (10 * densite).toInt())
+
+        val entete = LinearLayout(this)
+        entete.orientation = LinearLayout.HORIZONTAL
+        entete.addView(pastilleCouleur(l.hex))
+        val titre = TextView(this)
+        titre.text = (l.nom?.let { "$it  " } ?: "") + "#" + l.hex
+        titre.textSize = 15f
+        titre.setTypeface(titre.typeface, android.graphics.Typeface.BOLD)
+        entete.addView(titre)
+        bloc.addView(entete)
+
+        bloc.addView(ligneEquivalent("PLA Basic", l.basic, nuit))
+        bloc.addView(ligneEquivalent("PLA Matte", l.matte, nuit))
+
+        val trait = View(this)
+        trait.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, maxOf(1, densite.toInt()))
+        trait.setBackgroundColor(0x33808080)
+        val conteneur = LinearLayout(this)
+        conteneur.orientation = LinearLayout.VERTICAL
+        conteneur.addView(bloc)
+        conteneur.addView(trait)
+        return conteneur
+    }
+
+    private fun afficherResultatsLot(lignes: List<LigneEquivalence>, illisibles: List<String>) {
+        val densite = resources.displayMetrics.density
+        val nuit = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+
+        val conteneur = LinearLayout(this)
+        conteneur.orientation = LinearLayout.VERTICAL
+        val marge = (20 * densite).toInt()
+        conteneur.setPadding(marge, (8 * densite).toInt(), marge, (8 * densite).toInt())
+
+        val note = TextView(this)
+        note.textSize = 12f
+        var texteNote = "Niveaux calcules automatiquement (ecart de couleur CIEDE2000) : proche jusqu'a ${EquivalenceBambu.SEUIL_PROCHE.toInt()}, " +
+            "approximatif jusqu'a ${EquivalenceBambu.SEUIL_APPROXIMATIF.toInt()}, sinon sans equivalent correct (le moins mauvais est indique)."
+        if (illisibles.isNotEmpty()) texteNote += "\nIgnore (illisible) : ${illisibles.joinToString(", ")}"
+        note.text = texteNote
+        conteneur.addView(note)
+
+        for (l in lignes) conteneur.addView(blocEquivalence(l, nuit))
+
+        val defilement = ScrollView(this)
+        defilement.addView(conteneur)
+
+        AlertDialog.Builder(this)
+            .setTitle("${lignes.size} couleurs")
+            .setView(defilement)
+            .setPositiveButton("Exporter (CSV)") { _, _ ->
+                exporterVers("equivalences_bambu.csv", EquivalenceBambu.versCsv(lignes), "text/csv")
+            }
+            .setNeutralButton("Copier") { _, _ ->
+                copierTexte("Equivalences Bambu", EquivalenceBambu.versTexte(lignes))
+            }
+            .setNegativeButton("Fermer", null)
             .show()
     }
 
@@ -764,6 +947,7 @@ class MainActivity : AppCompatActivity() {
     // etiquettes par page, a decouper aux ciseaux une fois imprimees.
     companion object {
         const val CODE_EXPORT = 4711
+        const val CODE_PHOTO = 4712
         const val COLONNES_GRILLE = 3
         const val LIGNES_GRILLE = 7
         const val ETIQUETTES_PAR_PAGE = COLONNES_GRILLE * LIGNES_GRILLE
@@ -883,6 +1067,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == CODE_PHOTO) {
+            traiterPhotoChoisie(resultCode, data)
+            return
+        }
         if (requestCode != CODE_EXPORT) return
         val contenu = contenuAExporter
         contenuAExporter = null

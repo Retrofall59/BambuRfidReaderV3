@@ -1,7 +1,12 @@
 # Changelog
 
-## 2.0.1
-- Corrige : dans les resultats de "Chercher une couleur", les couleurs PLA Basic etaient etiquetees "Bambu" ; elles affichent maintenant "PLA Basic" (et "PLA Matte" pour le Matte), comme les autres gammes.
+## 2.1
+- Nouveau : "Trouver la couleur Bambu equivalente" accepte maintenant une LISTE de codes hex (un par ligne, avec ou sans nom, colles depuis un site ou un tableur) : plus besoin de les taper un par un.
+- Nouveau : bouton "Photo" pour lire les codes directement sur une photo de la fiche d'un fabricant (lecture du texte sur le telephone, sans connexion). Les codes lus sont modifiables avant la recherche : 8 et B, 0 et O se confondent facilement.
+- Nouveau : pour chaque couleur, l'equivalent en PLA Basic et en PLA Matte avec sa reference produit, un niveau (proche / approximatif / sans equivalent) et l'ecart de couleur, avec un carre de la couleur. Resultat copiable ou exportable en CSV ("Enregistrer sous").
+- Change : les equivalences utilisent l'ecart de couleur CIEDE2000 (plus fiable que la formule precedente sur les couleurs sombres). Les niveaux sont calcules automatiquement et peuvent differer d'un jugement fait a l'oeil.
+- Corrige : les couleurs PLA Basic ne sont plus etiquetees "Bambu" dans les resultats d'une recherche a un seul code (correctif de la 2.0.1 inclus).
+- Change : l'appli est plus lourde de quelques Mo (modele de lecture de texte embarque).
 
 ## 2.0
 - Corrige : les exports passent par le selecteur Android "Enregistrer sous" (Telechargements, Drive...). Avant, les fichiers restaient dans Android/data, inaccessible depuis Android 11.

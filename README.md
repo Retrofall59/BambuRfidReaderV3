@@ -98,6 +98,21 @@ Ce projet est configure pour se compiler automatiquement sur les serveurs de Git
    Android te demande ou l'enregistrer (Telechargements, Drive...). Meme chose pour l'historique
    des scans (bouton "Exporter" dans la fenetre Historique).
 
+## Trouver la couleur Bambu equivalente
+
+Bouton "Trouver la couleur Bambu equivalente" : pour une couleur d'une autre marque (ou toute une gamme), l'appli
+donne la couleur Bambu la plus proche en PLA Basic et en PLA Matte, avec sa reference produit.
+
+- Un code : tape-le (ex. FF6A13). Plusieurs : colle-les, un par ligne, avec ou sans nom (ex. `Red #CE3845`).
+- Bouton "Photo" : choisis une photo de la fiche du fabricant, l'appli lit les codes. **Verifie-les avant de chercher** :
+  la lecture d'une photo peut se tromper (8 et B, 0 et O), surtout si elle est de travers ou mal eclairee.
+- Resultat : carre de couleur, equivalent PLA Basic et PLA Matte, reference produit, niveau (proche / approximatif /
+  sans equivalent) et ecart de couleur. Copiable, ou exportable en CSV.
+
+Les niveaux sont calcules automatiquement (ecart CIEDE2000 : proche jusqu'a 7, approximatif jusqu'a 13) : ce sont des
+estimations non calibrees, pas un verdict. Les references produit ne sont pas lues sur un tag RFID : elles sont deduites
+et recoupees sur plusieurs revendeurs, a verifier sur la boutique avant de commander.
+
 ## Diagnostic du tag (sain / limite / defaillant)
 
 Utile pour trier des tags recuperes sur des bobines vides avant de les recoller.
