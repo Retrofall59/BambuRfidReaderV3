@@ -47,6 +47,7 @@ n'y est pas encore, n'hesite pas a partager ton retour pour qu'on l'ajoute : le 
 | Redmi Note 12 | Compatible (teste sur TPU for AMS) | Retour forum - pascal_lb |
 | Redmi Note 11S (Android 13) | Compatible (teste sur PLA Basic, lecture complete, tag sain) | Retour forum - Tchoum |
 | POCO X8 Pro Max (Android 16) | Compatible, mais sensible a la position : il faut poser le telephone sans bouger sur le tag (testee sur PETG Basic) | Retour forum |
+| Samsung Galaxy A54 5G | Compatible (v2.1) : retirer le telephone seulement quand toutes les infos sont affichees, sinon lecture partielle | Retour forum - jcjames_13009 |
 
 ## Comment obtenir le .apk (le plus simple : sans rien installer)
 
