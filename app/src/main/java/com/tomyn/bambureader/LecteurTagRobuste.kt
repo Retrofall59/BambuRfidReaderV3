@@ -34,7 +34,9 @@ data class ResultatLecture(
     val nbPasses: Int,
     val connexionImpossible: Boolean,
     /** Nombre total d'echecs (authentification refusee, erreur de lecture, tag perdu) rencontres pendant le scan, meme rattrapes ensuite. */
-    val nbIncidents: Int = 0
+    val nbIncidents: Int = 0,
+    /** Le tag a disparu en cours de lecture : la re-selection a echoue apres un premier contact (telephone deplace, tag trop eloigne...). */
+    val tagPerdu: Boolean = false
 ) {
     /** Les blocs necessaires au decodeur (code matiere, type, couleur, poids, temperatures) sont tous la. */
     val essentielsLus: Boolean
@@ -71,11 +73,12 @@ object LecteurTagRobuste {
         var connexionImpossible = false
         var passesFaites = 0
         var incidents = 0
+        var tagPerdu = false
 
         for (passe in 1..MAX_PASSES) {
             if (passe > 1) pause(120)
             if (!acces.reconnecter()) {
-                connexionImpossible = passesFaites == 0
+                if (passesFaites == 0) connexionImpossible = true else tagPerdu = true
                 break
             }
             passesFaites = passe
@@ -98,7 +101,10 @@ object LecteurTagRobuste {
                 // Secteur essentiel en echec : inutile de continuer cette passe, on repart d'une reconnexion propre.
                 if (secteur < SECTEURS_ESSENTIELS) break
                 // Sinon on re-selectionne le tag et on passe au secteur suivant ; s'il a disparu, on arrete la passe.
-                if (!acces.reconnecter()) break
+                if (!acces.reconnecter()) {
+                    tagPerdu = true
+                    break
+                }
             }
 
             val essentielsOk = (0 until SECTEURS_ESSENTIELS).all { it in secteursLus }
@@ -111,7 +117,7 @@ object LecteurTagRobuste {
         val statuts = (0 until acces.nbSecteurs).map { s ->
             StatutSecteur(s, s in secteursLus, details[s] ?: "non tente")
         }
-        return ResultatLecture(blocs.toMap(), statuts, passesFaites, connexionImpossible, incidents)
+        return ResultatLecture(blocs.toMap(), statuts, passesFaites, connexionImpossible, incidents, tagPerdu)
     }
 
     private fun lireSecteur(

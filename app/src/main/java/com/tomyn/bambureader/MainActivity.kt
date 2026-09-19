@@ -801,7 +801,13 @@ class MainActivity : AppCompatActivity() {
 
     /** Rapport texte a coller sur le forum : modele, Android, support MIFARE et qualite du dernier scan. Ne contient pas l'UID du tag. */
     private fun construireRapportCompatibilite(): String {
-        val versionAppli = try { packageManager.getPackageInfo(packageName, 0).versionName } catch (e: Exception) { "?" }
+        // Numero de build inclus : deux builds d'une meme version (ex. 2.1) peuvent se comporter differemment
+        val versionAppli = try {
+            val infoPaquet = packageManager.getPackageInfo(packageName, 0)
+            @Suppress("DEPRECATION")
+            val build = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) infoPaquet.longVersionCode else infoPaquet.versionCode.toLong()
+            "${infoPaquet.versionName} (build $build)"
+        } catch (e: Exception) { "?" }
         val nfcActif = if (::nfcAdapter.isInitialized) (if (nfcAdapter.isEnabled) "oui" else "non") else "pas de puce NFC"
         val mifareDeclare = if (packageManager.hasSystemFeature("com.nxp.mifare")) "oui" else "non"
 

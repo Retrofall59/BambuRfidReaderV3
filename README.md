@@ -46,6 +46,7 @@ n'y est pas encore, n'hesite pas a partager ton retour pour qu'on l'ajoute : le 
 | Xiaomi 15C | Compatible | Teste par l'auteur (Tomyn) |
 | Redmi Note 12 | Compatible (teste sur TPU for AMS) | Retour forum - pascal_lb |
 | Redmi Note 11S (Android 13) | Compatible (teste sur PLA Basic, lecture complete, tag sain) | Retour forum - Tchoum |
+| POCO X8 Pro Max (Android 16) | Compatible, mais sensible a la position : il faut poser le telephone sans bouger sur le tag (testee sur PETG Basic) | Retour forum |
 
 ## Comment obtenir le .apk (le plus simple : sans rien installer)
 
@@ -118,11 +119,12 @@ et recoupees sur plusieurs revendeurs, a verifier sur la boutique avant de comma
 Utile pour trier des tags recuperes sur des bobines vides avant de les recoller.
 
 - **Sain** : tout est lu du premier coup, donnees coherentes.
-- **Limite** : lecture reussie mais avec des echecs rattrapes par les reessais, ou des secteurs non lus.
-  A rescanner ; a surveiller si l'AMS le refuse de temps en temps.
-- **Defaillant** : infos essentielles illisibles, au moins 4 echecs pendant un scan, ou donnees
-  impossibles (ex. temperature de buse absurde).
-- **Diagnostic impossible** : connexion impossible, ou cles Bambu refusees (probablement pas un tag Bambu).
+- **Limite** : lecture reussie mais avec des echecs rattrapes par les reessais, des secteurs non lus, ou un premier
+  mauvais scan (infos illisibles, beaucoup d'echecs). A rescanner en posant le telephone sans bouger.
+- **Defaillant** : mauvaise lecture **deux scans de suite** sur le meme tag, ou donnees impossibles dans le tag
+  (ex. temperature de buse absurde). Un seul mauvais scan ne condamne jamais un tag : un scan propre remet tout a zero.
+- **Diagnostic impossible** : connexion impossible, tag disparu pendant la lecture (telephone deplace), ou cles Bambu
+  refusees a chaque tentative (probablement pas un tag Bambu).
 
 Ce verdict est une heuristique, pas une mesure : un seul scan ne prouve rien, et un mauvais scan peut
 venir du telephone ou de sa position autant que du tag. L'appli en tient compte : si elle a deja lu

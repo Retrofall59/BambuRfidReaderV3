@@ -7,7 +7,10 @@
 - Ameliore : la lecture de photo recupere les codes coupes en deux par un espace (ex. "#B1 B3B3").
 - Change : les equivalences utilisent l'ecart de couleur CIEDE2000 (plus fiable que la formule precedente sur les couleurs sombres). Les niveaux sont calcules automatiquement et peuvent differer d'un jugement fait a l'oeil.
 - Corrige : les couleurs PLA Basic ne sont plus etiquetees "Bambu" dans les resultats d'une recherche a un seul code (correctif de la 2.0.1 inclus).
-- Change : l'appli est plus lourde de quelques Mo (modele de lecture de texte embarque).
+- Corrige (retours d'un testeur POCO) : un tag sain n'est plus declare "defaillant" apres un seul mauvais scan. Une lecture instable est "limite" au premier scan et devient "defaillant" seulement si elle se repete sur le meme tag ; un scan propre remet le compteur a zero. Seules des donnees impossibles dans le tag le condamnent tout de suite.
+- Corrige : si le tag disparait en cours de lecture (telephone deplace), l'appli le dit ("le tag a disparu pendant la lecture") au lieu d'affirmer que les cles Bambu sont refusees.
+- Nouveau : le rapport de compatibilite indique le numero de build de l'appli.
+- Change : la lecture de photo embarque un modele de lecture de texte (fonctionne sans connexion) : l'APK depasse maintenant 40 Mo.
 
 ## 2.0
 - Corrige : les exports passent par le selecteur Android "Enregistrer sous" (Telechargements, Drive...). Avant, les fichiers restaient dans Android/data, inaccessible depuis Android 11.
