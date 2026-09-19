@@ -70,6 +70,11 @@ Ce projet est configure pour se compiler automatiquement sur les serveurs de Git
 8. Transfere ce .apk sur ton telephone (mail, cle USB, Google Drive...) et installe-le
    (il faudra peut-etre autoriser "sources inconnues" dans les parametres Android)
 
+   Mises a jour : a partir de la version 1.9, la signature est fixe, donc une nouvelle version
+   s'installe par-dessus l'ancienne sans rien desinstaller. (Passer de la 1.8 ou avant a la 1.9
+   demande une derniere desinstallation ; pense a copier `historique_scans.csv` et `dumps_bambu`
+   depuis Android/data/com.tomyn.bambureader/files/, ils partent avec l'appli.)
+
 ## Alternative : compiler toi-meme avec Android Studio
 
 1. Installe Android Studio (gratuit, https://developer.android.com/studio)

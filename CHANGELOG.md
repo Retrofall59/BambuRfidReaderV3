@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9
+- Nouveau : signature fixe de l'APK. A partir de cette version, les mises a jour s'installent PAR-DESSUS l'ancienne, sans desinstaller.
+- Attention : pour passer de la 1.8 (ou avant) a la 1.9, il faut desinstaller une derniere fois (la signature change). Copie d'abord `historique_scans.csv` et le dossier `dumps_bambu` (dans Android/data/com.tomyn.bambureader/files/) : ils sont supprimes avec l'appli.
+
 ## 1.8
 - Nouveau : bouton "Copier le rapport de compatibilite" (modele, Android, support MIFARE declare par le systeme, verdict et etat des secteurs du dernier scan, sans l'UID du tag), a coller sur le forum.
 - Nouveau : si le NFC est desactive, l'appli le dit et propose d'ouvrir les reglages (au lieu de rester sur "Approche une bobine...").
