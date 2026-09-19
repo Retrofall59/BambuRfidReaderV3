@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.0.1
+- Corrige : dans les resultats de "Chercher une couleur", les couleurs PLA Basic etaient etiquetees "Bambu" ; elles affichent maintenant "PLA Basic" (et "PLA Matte" pour le Matte), comme les autres gammes.
+
 ## 2.0
 - Corrige : les exports passent par le selecteur Android "Enregistrer sous" (Telechargements, Drive...). Avant, les fichiers restaient dans Android/data, inaccessible depuis Android 11.
 - Nouveau : bouton "Exporter" dans l'historique des scans (fichier CSV).

@@ -850,7 +850,14 @@ object NomCouleur {
         val toutesLesEntrees = mutableListOf<Triple<String, String, String>>() // (nom, ligne, hexOfficiel)
         for ((hex, entrees) in tableOfficielle) {
             for ((ligne, nom) in entrees) {
-                val ligneAffichee = if (ligne.isEmpty()) "Bambu" else ligne
+                // Les entrees sans mot-cle de gamme sont les couleurs PLA Basic (leur reference produit le confirme) :
+                // on l'affiche au lieu d'un simple "Bambu", pour distinguer PLA Basic et PLA Matte.
+                val ligneAffichee = when {
+                    ligne.isNotEmpty() -> ligne
+                    referencesProduitPlaBasic.containsKey(hex) -> "PLA Basic"
+                    referencesProduitPlaMatte.containsKey(hex) -> "PLA Matte"
+                    else -> "Bambu"
+                }
                 toutesLesEntrees.add(Triple(avecTraduction(nom), ligneAffichee, hex))
             }
         }
