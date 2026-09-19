@@ -82,6 +82,7 @@ class MainActivity : AppCompatActivity() {
     private var dernierTempPlateau: Int? = null
     private var animationPulse: ObjectAnimator? = null
     private val lectureEnCours = AtomicBoolean(false)
+    private val sessionDiagnostic = SessionDiagnostic()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -381,13 +382,17 @@ class MainActivity : AppCompatActivity() {
             resumeTexte.append("Sechage recommande : ${infoFilament.tempSechage}C pendant ${infoFilament.dureeSechage ?: "?"}h\n")
         }
 
-        // Lecture partielle : on le dit clairement et on n'enregistre rien (ni historique, ni etiquette bancale).
-        if (!lecture.essentielsLus && !lecture.connexionImpossible) {
-            val secteursEnEchec = lecture.statutSecteurs.filter { !it.lu }.joinToString(", ") { it.secteur.toString() }
-            ajouterLigneInfo(R.drawable.ic_nfc, "Lecture incomplete (${lecture.nbSecteursLus}/${lecture.statutSecteurs.size} secteurs) - recolle le telephone sans bouger")
-            resumeTexte.append("Lecture incomplete - secteurs non lus : $secteursEnEchec\n")
+        // Diagnostic du tag (sain / limite / defaillant) + contexte de session
+        val diagnostic = sessionDiagnostic.evaluer(uidHex, lecture, infoFilament)
+        ajouterLigneInfo(R.drawable.ic_nfc, "${diagnostic.niveau.pastille} ${diagnostic.niveau.libelle}")
+        resumeTexte.append("Diagnostic : ${diagnostic.niveau.libelle}\n")
+        for (raison in diagnostic.raisons) {
+            ajouterLigneInfo(R.drawable.ic_nfc, raison)
+            resumeTexte.append("  - $raison\n")
         }
+        diagnostic.conseil?.let { ajouterLigneInfo(R.drawable.ic_nfc, it) }
 
+        // Lecture incomplete : ni historique, ni etiquette bancale
         val detectionReussie = nomFilament != null && lecture.essentielsLus
 
         dernierDumpTexte = resumeTexte.toString() + "\n\n--- DETAIL TECHNIQUE COMPLET (pour export) ---\n\n" + rapport

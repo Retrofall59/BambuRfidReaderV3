@@ -32,7 +32,9 @@ data class ResultatLecture(
     val blocs: Map<Int, ByteArray>,
     val statutSecteurs: List<StatutSecteur>,
     val nbPasses: Int,
-    val connexionImpossible: Boolean
+    val connexionImpossible: Boolean,
+    /** Nombre total d'echecs (authentification refusee, erreur de lecture, tag perdu) rencontres pendant le scan, meme rattrapes ensuite. */
+    val nbIncidents: Int = 0
 ) {
     /** Les blocs necessaires au decodeur (code matiere, type, couleur, poids, temperatures) sont tous la. */
     val essentielsLus: Boolean
@@ -53,6 +55,7 @@ data class ResultatLecture(
 object LecteurTagRobuste {
 
     const val MAX_PASSES = 3
+    const val DETAIL_AUTH_REFUSEE = "authentification refusee"
     const val SECTEURS_ESSENTIELS = 2                // secteurs 0 et 1
     val BLOCS_ESSENTIELS = setOf(1, 2, 4, 5, 6)      // cf. BambuTagDecoder
 
@@ -67,6 +70,7 @@ object LecteurTagRobuste {
         val aLire = (0 until acces.nbSecteurs).filter { cles.getOrNull(it) != null }
         var connexionImpossible = false
         var passesFaites = 0
+        var incidents = 0
 
         for (passe in 1..MAX_PASSES) {
             if (passe > 1) pause(120)
@@ -90,6 +94,7 @@ object LecteurTagRobuste {
                     secteursLus += secteur
                     continue
                 }
+                incidents++
                 // Secteur essentiel en echec : inutile de continuer cette passe, on repart d'une reconnexion propre.
                 if (secteur < SECTEURS_ESSENTIELS) break
                 // Sinon on re-selectionne le tag et on passe au secteur suivant ; s'il a disparu, on arrete la passe.
@@ -106,7 +111,7 @@ object LecteurTagRobuste {
         val statuts = (0 until acces.nbSecteurs).map { s ->
             StatutSecteur(s, s in secteursLus, details[s] ?: "non tente")
         }
-        return ResultatLecture(blocs.toMap(), statuts, passesFaites, connexionImpossible)
+        return ResultatLecture(blocs.toMap(), statuts, passesFaites, connexionImpossible, incidents)
     }
 
     private fun lireSecteur(
@@ -117,7 +122,7 @@ object LecteurTagRobuste {
         details: MutableMap<Int, String>
     ): Boolean {
         if (!acces.authentifier(secteur, cle)) {
-            details[secteur] = "authentification refusee"
+            details[secteur] = DETAIL_AUTH_REFUSEE
             return false
         }
         val premier = acces.premierBloc(secteur)

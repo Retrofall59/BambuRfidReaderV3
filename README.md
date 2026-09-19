@@ -11,6 +11,7 @@
 - Lecture robuste : les secteurs utiles au decodage sont lus en priorite, le tag est re-selectionne
   apres chaque echec, et l'appli reessaie automatiquement (3 passes max) en ne relisant que ce qui manque
 - Signale clairement une lecture incomplete (secteurs non lus) au lieu d'afficher un resultat bancal
+- Diagnostic du tag a chaque scan : sain / limite / defaillant, avec les raisons (voir plus bas)
 - Historique des scans (CSV), copier / partager, recherche de couleur par code hexa,
   impression d'etiquettes (jusqu'a 21 par page A4)
 
@@ -87,6 +88,23 @@ Ce projet est configure pour se compiler automatiquement sur les serveurs de Git
    l'antenne NFC varie beaucoup d'un modele a l'autre, il faut parfois tatonner
 5. Bouton "Exporter le dernier dump" pour sauvegarder le detail technique complet dans un .txt
    (dossier Android/data/com.tomyn.bambureader/files/dumps_bambu/)
+
+## Diagnostic du tag (sain / limite / defaillant)
+
+Utile pour trier des tags recuperes sur des bobines vides avant de les recoller.
+
+- **Sain** : tout est lu du premier coup, donnees coherentes.
+- **Limite** : lecture reussie mais avec des echecs rattrapes par les reessais, ou des secteurs non lus.
+  A rescanner ; a surveiller si l'AMS le refuse de temps en temps.
+- **Defaillant** : infos essentielles illisibles, au moins 4 echecs pendant un scan, ou donnees
+  impossibles (ex. temperature de buse absurde).
+- **Diagnostic impossible** : connexion impossible, ou cles Bambu refusees (probablement pas un tag Bambu).
+
+Ce verdict est une heuristique, pas une mesure : un seul scan ne prouve rien, et un mauvais scan peut
+venir du telephone ou de sa position autant que du tag. L'appli en tient compte : si elle a deja lu
+d'autres tags sans souci pendant la session, elle indique que le tag est probablement en cause ;
+sinon elle te dit qu'elle ne peut pas trancher et te suggere de comparer avec un autre tag.
+Les seuils (4 echecs, plages de valeurs) sont des estimations non calibrees.
 
 ## Limites connues
 
