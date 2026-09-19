@@ -36,7 +36,9 @@ regarde si l'appli arrive a en lire le contenu. Si oui, ton telephone est compat
 ## Telephones confirmes compatibles (retours utilisateurs)
 
 Cette liste s'allonge au fil des retours sur le forum. Si tu testes sur un telephone qui
-n'y est pas encore, n'hesite pas a partager ton retour pour qu'on l'ajoute.
+n'y est pas encore, n'hesite pas a partager ton retour pour qu'on l'ajoute : le bouton
+"Copier le rapport de compatibilite" de l'appli genere un texte pret a coller sur le forum
+(modele, Android, verdict du dernier scan ; il ne contient pas l'UID du tag).
 
 | Telephone | Statut | Source |
 |---|---|---|

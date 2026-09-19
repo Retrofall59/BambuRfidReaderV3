@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.8
+- Nouveau : bouton "Copier le rapport de compatibilite" (modele, Android, support MIFARE declare par le systeme, verdict et etat des secteurs du dernier scan, sans l'UID du tag), a coller sur le forum.
+- Nouveau : si le NFC est desactive, l'appli le dit et propose d'ouvrir les reglages (au lieu de rester sur "Approche une bobine...").
+- Corrige : l'icone NFC ne se deforme plus apres plusieurs scans rates (l'animation verticale n'etait jamais arretee).
+
+## 1.7
+- Corrige : quand l'appli est fermee et qu'on scanne un tag, elle s'ouvre maintenant ET lit le tag directement (avant, elle s'ouvrait sans rien lire et il fallait rescanner).
+- Corrige : pas de relecture parasite du meme tag juste apres l'ouverture, ni lors d'une rotation d'ecran.
+
 ## 1.6
 - Nouveau : diagnostic du tag apres chaque scan : sain / limite / defaillant / diagnostic impossible, avec les raisons.
 - Nouveau : l'appli retient les tags sains lus pendant la session, pour dire si un mauvais scan vient plutot du tag ou du telephone.

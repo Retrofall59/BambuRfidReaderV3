@@ -24,6 +24,7 @@ import android.os.ParcelFileDescriptor
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import android.provider.Settings
 import android.print.PageRange
 import android.print.PrintAttributes
 import android.print.PrintDocumentAdapter
@@ -80,8 +81,16 @@ class MainActivity : AppCompatActivity() {
     private var dernierPoidsGrammes: Int? = null
     private var dernierTempBuseTexte: String? = null
     private var dernierTempPlateau: Int? = null
-    private var animationPulse: ObjectAnimator? = null
+    private var animationsPulse: List<ObjectAnimator> = emptyList()
+    private lateinit var btnReglagesNfc: Button
+    // Etat du dernier scan, pour le rapport de compatibilite
+    private var dernierLecture: ResultatLecture? = null
+    private var dernierDiagnostic: DiagnosticTag? = null
+    private var dernierScanSansMifare = false
     private val lectureEnCours = AtomicBoolean(false)
+    // Tag qui a lance / reveille l'appli via l'intent : le mode lecteur peut le re-detecter juste apres, on l'ignore un court instant.
+    @Volatile private var uidDepuisIntent: String? = null
+    @Volatile private var limiteAntiDoublonMs: Long = 0L
     private val sessionDiagnostic = SessionDiagnostic()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -113,6 +122,12 @@ class MainActivity : AppCompatActivity() {
         val btnChercherCouleur = findViewById<Button>(R.id.btnChercherCouleur)
         btnChercherCouleur.setOnClickListener { afficherRechercheCouleur() }
 
+        btnReglagesNfc = findViewById(R.id.btnReglagesNfc)
+        btnReglagesNfc.setOnClickListener { ouvrirReglagesNfc() }
+
+        val btnRapportCompat = findViewById<Button>(R.id.btnRapportCompat)
+        btnRapportCompat.setOnClickListener { copierRapportCompatibilite() }
+
         demarrerPulseNfc()
 
         val adapter = NfcAdapter.getDefaultAdapter(this)
@@ -121,9 +136,16 @@ class MainActivity : AppCompatActivity() {
             return
         }
         nfcAdapter = adapter
+
+        // Lancement a froid : l'appli a ete ouverte PAR le scan d'un tag. onNewIntent n'est pas appele dans ce cas,
+        // il faut lire le tag de l'intent ici. savedInstanceState == null : on ne relit pas lors d'une rotation d'ecran.
+        if (savedInstanceState == null) {
+            tagDepuisIntent(intent)?.let { demarrerLecture(it, depuisIntent = true) }
+        }
     }
 
     private fun demarrerPulseNfc() {
+        arreterPulseNfc()   // evite d'empiler des animations si on relance sans avoir arrete
         val animateur = ObjectAnimator.ofFloat(imgNfc, "scaleX", 1f, 1.15f, 1f)
         animateur.duration = 1200
         animateur.repeatCount = ValueAnimator.INFINITE
@@ -132,11 +154,13 @@ class MainActivity : AppCompatActivity() {
         animateurY.repeatCount = ValueAnimator.INFINITE
         animateur.start()
         animateurY.start()
-        animationPulse = animateur
+        animationsPulse = listOf(animateur, animateurY)
     }
 
     private fun arreterPulseNfc() {
-        animationPulse?.cancel()
+        // Les DEUX animations (X et Y) doivent etre arretees, sinon l'icone continue de se deformer.
+        animationsPulse.forEach { it.cancel() }
+        animationsPulse = emptyList()
         imgNfc.scaleX = 1f
         imgNfc.scaleY = 1f
     }
@@ -144,6 +168,18 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (!::nfcAdapter.isInitialized) return
+
+        // NFC coupe dans les reglages : on le dit clairement au lieu de rester sur "Approche une bobine..."
+        if (!nfcAdapter.isEnabled) {
+            btnReglagesNfc.visibility = View.VISIBLE
+            txtStatut.text = "Le NFC est desactive sur ce telephone."
+            return
+        }
+        if (btnReglagesNfc.visibility == View.VISIBLE) {
+            // De retour des reglages, NFC active : on retablit l'ecran d'accueil
+            btnReglagesNfc.visibility = View.GONE
+            txtStatut.text = "Approche une bobine Bambu du dos du telephone..."
+        }
 
         // Mode lecteur : plus fiable que le foreground dispatch pour du MIFARE Classic (pas de
         // verification NDEF parasite avant notre lecture), et le callback tourne deja hors thread UI.
@@ -166,10 +202,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        val tag: Tag? = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
-        if (tag != null) {
-            demarrerLecture(tag)
-        }
+        tagDepuisIntent(intent)?.let { demarrerLecture(it, depuisIntent = true) }
+    }
+
+    /** Tag contenu dans un intent de decouverte NFC (lancement de l'appli par un scan), ou null. */
+    private fun tagDepuisIntent(intent: Intent?): Tag? {
+        if (intent?.action != NfcAdapter.ACTION_TECH_DISCOVERED) return null
+        return intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
     }
 
     private fun ajouterLigneInfo(icone: Int, texte: String) {
@@ -204,7 +243,14 @@ class MainActivity : AppCompatActivity() {
      * Lance la lecture HORS du thread UI (les echanges NFC sont bloquants et peuvent durer
      * plusieurs secondes : sur le thread principal, ils gelaient l'interface).
      */
-    private fun demarrerLecture(tag: Tag) {
+    private fun demarrerLecture(tag: Tag, depuisIntent: Boolean = false) {
+        val uidHex = tag.id.joinToString("") { String.format("%02X", it) }
+        if (depuisIntent) {
+            uidDepuisIntent = uidHex
+            limiteAntiDoublonMs = System.currentTimeMillis() + 2500L
+        } else if (uidHex == uidDepuisIntent && System.currentTimeMillis() < limiteAntiDoublonMs) {
+            return   // meme tag que celui qui vient de lancer l'appli : deja en cours de lecture
+        }
         if (!lectureEnCours.compareAndSet(false, true)) return
         Thread {
             try {
@@ -232,6 +278,9 @@ class MainActivity : AppCompatActivity() {
         val mifare = MifareClassic.get(tag)
         if (mifare == null) {
             runOnUiThread {
+                dernierScanSansMifare = true
+                dernierLecture = null
+                dernierDiagnostic = null
                 txtStatut.text = "Ce tag n'est pas un MIFARE Classic (ou ton telephone ne le supporte pas)."
                 demarrerPulseNfc()
             }
@@ -384,6 +433,9 @@ class MainActivity : AppCompatActivity() {
 
         // Diagnostic du tag (sain / limite / defaillant) + contexte de session
         val diagnostic = sessionDiagnostic.evaluer(uidHex, lecture, infoFilament)
+        dernierScanSansMifare = false
+        dernierLecture = lecture
+        dernierDiagnostic = diagnostic
         ajouterLigneInfo(R.drawable.ic_nfc, "${diagnostic.niveau.pastille} ${diagnostic.niveau.libelle}")
         resumeTexte.append("Diagnostic : ${diagnostic.niveau.libelle}\n")
         for (raison in diagnostic.raisons) {
@@ -544,6 +596,61 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Toast.makeText(this, "Erreur lecture historique : ${e.message}", Toast.LENGTH_LONG).show()
         }
+    }
+
+    private fun ouvrirReglagesNfc() {
+        try {
+            startActivity(Intent(Settings.ACTION_NFC_SETTINGS))
+        } catch (e: Exception) {
+            try {
+                startActivity(Intent(Settings.ACTION_WIRELESS_SETTINGS))
+            } catch (e2: Exception) {
+                Toast.makeText(this, "Ouvre les reglages du telephone et active le NFC.", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    /** Rapport texte a coller sur le forum : modele, Android, support MIFARE et qualite du dernier scan. Ne contient pas l'UID du tag. */
+    private fun construireRapportCompatibilite(): String {
+        val versionAppli = try { packageManager.getPackageInfo(packageName, 0).versionName } catch (e: Exception) { "?" }
+        val nfcActif = if (::nfcAdapter.isInitialized) (if (nfcAdapter.isEnabled) "oui" else "non") else "pas de puce NFC"
+        val mifareDeclare = if (packageManager.hasSystemFeature("com.nxp.mifare")) "oui" else "non"
+
+        val r = StringBuilder()
+        r.append("=== Rapport de compatibilite - Bambu RFID Reader ===\n")
+        r.append("Appli : v$versionAppli\n")
+        r.append("Telephone : ${Build.MANUFACTURER} ${Build.MODEL}\n")
+        r.append("Android : ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})\n")
+        r.append("NFC actif : $nfcActif\n")
+        r.append("MIFARE Classic declare par le systeme : $mifareDeclare\n")
+        r.append("Date : ${SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.FRANCE).format(Date())}\n\n")
+
+        val lecture = dernierLecture
+        val diagnostic = dernierDiagnostic
+        r.append("--- Dernier scan ---\n")
+        if (dernierScanSansMifare) {
+            r.append("Le telephone n'expose pas MIFARE Classic pour ce tag (pas de lecture possible).\n")
+        } else if (lecture == null || diagnostic == null) {
+            r.append("Aucun scan effectue depuis l'ouverture de l'appli.\n")
+        } else {
+            r.append("Filament : ${dernierNomFilament ?: "non identifie"}\n")
+            r.append("Verdict : ${diagnostic.niveau.libelle}\n")
+            for (raison in diagnostic.raisons) r.append("  - $raison\n")
+            r.append("Lecture : ${lecture.nbSecteursLus}/${lecture.statutSecteurs.size} secteurs, ${lecture.nbPasses} passe(s), ${lecture.nbIncidents} echec(s)\n")
+            val lus = lecture.statutSecteurs.filter { it.lu }.joinToString(", ") { it.secteur.toString() }
+            r.append("Secteurs lus : ${if (lus.isEmpty()) "aucun" else lus}\n")
+            val echecs = lecture.statutSecteurs.filter { !it.lu }
+            if (echecs.isNotEmpty()) {
+                r.append("Secteurs en echec : ${echecs.joinToString(" ; ") { "${it.secteur} (${it.detail})" }}\n")
+            }
+        }
+        return r.toString()
+    }
+
+    private fun copierRapportCompatibilite() {
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText("Rapport compatibilite Bambu RFID", construireRapportCompatibilite()))
+        Toast.makeText(this, "Rapport copie : colle-le sur le forum.", Toast.LENGTH_SHORT).show()
     }
 
     private fun copierResume() {

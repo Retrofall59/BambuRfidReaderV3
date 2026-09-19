@@ -36,6 +36,19 @@
                 android:textColor="@color/texte_principal" />
         </LinearLayout>
 
+        <!-- Bandeau affiche uniquement quand le NFC est desactive dans les reglages du telephone -->
+        <Button
+            android:id="@+id/btnReglagesNfc"
+            android:layout_width="match_parent"
+            android:layout_height="46dp"
+            android:layout_marginBottom="14dp"
+            android:background="@drawable/fond_bouton_principal"
+            android:text="NFC desactive - ouvrir les reglages"
+            android:textColor="@color/carte_blanc"
+            android:textAllCaps="false"
+            android:textSize="13sp"
+            android:visibility="gone" />
+
         <!-- Recherche inverse : trouver un tag Bambu proche d'un code hexa saisi -->
         <Button
             android:id="@+id/btnChercherCouleur"
@@ -188,6 +201,18 @@
                 android:textAllCaps="false"
                 android:textSize="13sp" />
         </LinearLayout>
+
+        <!-- Rapport de compatibilite : a coller sur le forum -->
+        <Button
+            android:id="@+id/btnRapportCompat"
+            android:layout_width="match_parent"
+            android:layout_height="46dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/fond_bouton_secondaire"
+            android:text="Copier le rapport de compatibilite"
+            android:textColor="@color/bambu_teal_fonce"
+            android:textAllCaps="false"
+            android:textSize="13sp" />
 
     </LinearLayout>
 </ScrollView>
