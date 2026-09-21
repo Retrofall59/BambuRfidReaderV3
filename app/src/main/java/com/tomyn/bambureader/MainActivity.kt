@@ -282,7 +282,7 @@ class MainActivity : AppCompatActivity() {
             arreterPulseNfc()
             layoutLignesInfo.removeAllViews()
             txtResultat.visibility = View.GONE
-            txtStatut.text = "Lecture en cours... ne bouge pas le telephone"
+            txtStatut.text = "Lecture en cours...\nNe bouge pas le telephone"
         }
 
         val mifare = MifareClassic.get(tag)
@@ -302,7 +302,10 @@ class MainActivity : AppCompatActivity() {
         val date = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.FRANCE).format(Date())
         val cles = BambuKeyDeriver.deriverClesA(uid)
 
-        val lecture = LecteurTagRobuste.lire(AccesMifare(mifare), cles)
+        // Progression affichee en direct : on sait ainsi quand on peut retirer le telephone
+        val lecture = LecteurTagRobuste.lire(AccesMifare(mifare), cles, progression = { lus, total ->
+            runOnUiThread { txtStatut.text = "Lecture en cours : $lus/$total\nNe bouge pas le telephone" }
+        })
         val rapport = construireRapport(mifare, uidHex, date, cles, lecture)
 
         runOnUiThread { afficherResultat(uidHex, rapport, lecture) }
@@ -359,7 +362,7 @@ class MainActivity : AppCompatActivity() {
         val codeAffiche: String? = resultatMatiere?.first ?: infoFilament.codeMatiere
 
         if (nomFilament != null) {
-            txtStatut.text = if (lecture.essentielsLus) "Filament detecte" else "Filament detecte (lecture partielle)"
+            txtStatut.text = if (lecture.essentielsLus) "Lecture terminee : tu peux retirer le telephone" else "Filament detecte (lecture partielle)"
             ajouterLigneInfo(R.drawable.ic_materiau, nomFilament + if (codeAffiche != null) " ($codeAffiche)" else "")
             resumeTexte.append("Filament : $nomFilament${if (codeAffiche != null) " ($codeAffiche)" else ""}\n")
             dernierNomFilament = nomFilament

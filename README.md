@@ -42,7 +42,7 @@ n'y est pas encore, n'hesite pas a partager ton retour pour qu'on l'ajoute : le 
 
 | Telephone | Statut | Source |
 |---|---|---|
-| Samsung Galaxy S20 FE | Compatible (teste sur PLA et ABS) | Retour forum - Zetif |
+| Samsung Galaxy S20 FE | Compatible (teste sur PLA et ABS ; lancement automatique de l'appli confirme en v2.1) | Retour forum - Zetif |
 | Xiaomi 15C | Compatible | Teste par l'auteur (Tomyn) |
 | Redmi Note 12 | Compatible (teste sur TPU for AMS) | Retour forum - pascal_lb |
 | Redmi Note 11S (Android 13) | Compatible (teste sur PLA Basic, lecture complete, tag sain) | Retour forum - Tchoum |
@@ -92,7 +92,7 @@ Ce projet est configure pour se compiler automatiquement sur les serveurs de Git
 
 1. Lance l'appli, elle affiche "Approche une bobine Bambu..."
 2. Pose le dos du telephone sur le tag RFID d'une bobine Bambu (generalement colle sur le
-   carton central) et **ne bouge plus** jusqu'a la vibration de confirmation
+   carton central) et **ne bouge plus** jusqu'a ce que "Lecture terminee" s'affiche (compteur 16/16 et vibration de confirmation)
 3. L'appli affiche le filament en clair (matiere, couleur, poids, temperatures)
 4. Si elle indique "Lecture incomplete", recolle le telephone sans bouger : la position de
    l'antenne NFC varie beaucoup d'un modele a l'autre, il faut parfois tatonner

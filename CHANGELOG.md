@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.2
+- Nouveau : indicateur de progression pendant la lecture ("Lecture en cours : 9/16") et message "Lecture terminee : tu peux retirer le telephone" a la fin. Plusieurs testeurs retiraient le telephone trop tot et obtenaient une lecture partielle : on sait maintenant exactement quand la lecture est finie.
+
 ## 2.1
 - Nouveau : "Trouver la couleur Bambu equivalente" accepte maintenant une LISTE de codes hex (un par ligne, avec ou sans nom, colles depuis un site ou un tableur) : plus besoin de les taper un par un.
 - Nouveau : bouton "Photo" pour lire les codes directement sur une photo de la fiche d'un fabricant (lecture du texte sur le telephone, sans connexion). Les codes lus sont modifiables avant la recherche : 8 et B, 0 et O se confondent facilement.

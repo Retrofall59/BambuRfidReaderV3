@@ -64,7 +64,9 @@ object LecteurTagRobuste {
     fun lire(
         acces: AccesTag,
         cles: List<ByteArray>,
-        pause: (Long) -> Unit = { ms -> try { Thread.sleep(ms) } catch (e: InterruptedException) { Thread.currentThread().interrupt() } }
+        pause: (Long) -> Unit = { ms -> try { Thread.sleep(ms) } catch (e: InterruptedException) { Thread.currentThread().interrupt() } },
+        /** Appelee a chaque secteur lu : (secteurs lus, secteurs a lire). Ne recule jamais, meme pendant une nouvelle passe. */
+        progression: (Int, Int) -> Unit = { _, _ -> }
     ): ResultatLecture {
         val blocs = mutableMapOf<Int, ByteArray>()
         val secteursLus = mutableSetOf<Int>()
@@ -75,6 +77,7 @@ object LecteurTagRobuste {
         var incidents = 0
         var tagPerdu = false
 
+        progression(0, aLire.size)
         for (passe in 1..MAX_PASSES) {
             if (passe > 1) pause(120)
             if (!acces.reconnecter()) {
@@ -95,6 +98,7 @@ object LecteurTagRobuste {
 
                 if (ok) {
                     secteursLus += secteur
+                    progression(secteursLus.size, aLire.size)
                     continue
                 }
                 incidents++
