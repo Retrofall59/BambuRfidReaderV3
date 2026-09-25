@@ -797,7 +797,16 @@ object NomCouleur {
         return null
     }
 
-    fun trouverNom(hexRGB: String, indiceMatiere: String = ""): ResultatCouleur {
+    /**
+     * @param alpha canal alpha du code couleur du tag (0-255). Bambu utilise alpha = 0 pour
+     *        signifier "pas de couleur definie" sur les filaments Translucent/Transparent
+     *        (le RGB associe vaut alors 000000, ce qui serait sinon lu a tort comme "Black").
+     *        255 par defaut pour ne pas casser les appels existants qui ne le precisent pas.
+     */
+    fun trouverNom(hexRGB: String, indiceMatiere: String = "", alpha: Int = 255): ResultatCouleur {
+        if (alpha == 0) {
+            return ResultatCouleur("Transparent", "Transparent", true)
+        }
         val hexNormalise = hexRGB.uppercase()
         val entrees = tableOfficielle[hexNormalise]
         if (entrees != null) {
