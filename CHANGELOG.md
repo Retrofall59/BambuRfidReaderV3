@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.4
+- Nouveau : menu Parametres (icone engrenage). Seuil avant "Tag defaillant" reglable (2, 3 ou 4 mauvais scans consecutifs au lieu de 2 fixe), vibration de fin de lecture activable/desactivable, ecran "A propos" avec le numero de version.
+
+## 2.3
+- Corrige : un filament Translucent/Transparent (alpha du code couleur a 0) s'affichait a tort "Black" au lieu de "Transparent".
+
 ## 2.2
 - Nouveau : indicateur de progression pendant la lecture ("Lecture en cours : 9/16") et message "Lecture terminee : tu peux retirer le telephone" a la fin. Plusieurs testeurs retiraient le telephone trop tot et obtenaient une lecture partielle : on sait maintenant exactement quand la lecture est finie.
 

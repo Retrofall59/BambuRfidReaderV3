@@ -27,13 +27,22 @@
                 android:contentDescription="Logo bobine" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:layout_marginStart="10dp"
                 android:text="Bambu RFID Reader"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@color/texte_principal" />
+
+            <ImageButton
+                android:id="@+id/btnParametres"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_parametres"
+                android:contentDescription="Parametres" />
         </LinearLayout>
 
         <!-- Bandeau affiche uniquement quand le NFC est desactive dans les reglages du telephone -->

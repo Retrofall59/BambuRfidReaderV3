@@ -50,7 +50,10 @@ object EvaluateurTag {
     fun evaluer(
         lecture: ResultatLecture,
         info: BambuTagDecoder.InfoFilament,
-        ctx: ContexteDiagnostic = ContexteDiagnostic()
+        ctx: ContexteDiagnostic = ContexteDiagnostic(),
+        /** Nombre de mauvais scans consecutifs precedents (meme tag) a partir duquel on passe a DEFAILLANT.
+         * 1 = comportement d'origine (2 mauvais scans au total). Reglable dans les Parametres. */
+        seuilScansAvantDefaillant: Int = 1
     ): DiagnosticTag {
 
         if (lecture.connexionImpossible) {
@@ -106,9 +109,10 @@ object EvaluateurTag {
             }
         }
 
-        // Mauvaise lecture : limite au premier scan, defaillant seulement si elle se repete.
+        // Mauvaise lecture : limite au premier scan, defaillant seulement si elle se repete
+        // (seuil reglable dans les Parametres, 1 par defaut = comportement d'origine).
         if (lectureMauvaise) {
-            monterA(if (ctx.scansMauvaisPrecedents >= 1) NiveauTag.DEFAILLANT else NiveauTag.LIMITE)
+            monterA(if (ctx.scansMauvaisPrecedents >= seuilScansAvantDefaillant) NiveauTag.DEFAILLANT else NiveauTag.LIMITE)
         }
 
         val incoherences = incoherences(info)
@@ -121,7 +125,7 @@ object EvaluateurTag {
             NiveauTag.SAIN, NiveauTag.NON_EVALUABLE -> null
             NiveauTag.LIMITE ->
                 if (lectureMauvaise)
-                    "Lecture instable sur ce scan. $CONSEIL_POSITION Un tag n'est juge defaillant qu'apres deux mauvais scans de suite."
+                    "Lecture instable sur ce scan. $CONSEIL_POSITION Un tag n'est juge defaillant qu'apres ${seuilScansAvantDefaillant + 1} mauvais scans de suite."
                 else
                     "Lecture reussie mais instable : rescanne pour confirmer. Si l'AMS le refuse de temps en temps, remplace-le."
             NiveauTag.DEFAILLANT ->
@@ -173,12 +177,15 @@ class SessionDiagnostic {
     private val uidsSains = mutableSetOf<String>()
     private val mauvaisScansParUid = mutableMapOf<String, Int>()
 
+    /** Reglable depuis l'ecran Parametres (1 = comportement d'origine, 2 mauvais scans au total). */
+    var seuilScansAvantDefaillant: Int = 1
+
     fun evaluer(uid: String, lecture: ResultatLecture, info: BambuTagDecoder.InfoFilament): DiagnosticTag {
         val ctx = ContexteDiagnostic(
             autresTagsSainsVus = (uidsSains - uid).size,
             scansMauvaisPrecedents = mauvaisScansParUid[uid] ?: 0
         )
-        val diagnostic = EvaluateurTag.evaluer(lecture, info, ctx)
+        val diagnostic = EvaluateurTag.evaluer(lecture, info, ctx, seuilScansAvantDefaillant)
         when {
             diagnostic.niveau == NiveauTag.SAIN -> { uidsSains += uid; mauvaisScansParUid.remove(uid) }
             diagnostic.lectureMauvaise -> mauvaisScansParUid[uid] = (mauvaisScansParUid[uid] ?: 0) + 1

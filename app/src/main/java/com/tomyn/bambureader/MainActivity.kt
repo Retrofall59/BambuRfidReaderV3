@@ -41,6 +41,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -135,6 +136,10 @@ class MainActivity : AppCompatActivity() {
         btnReglagesNfc = findViewById(R.id.btnReglagesNfc)
         btnReglagesNfc.setOnClickListener { ouvrirReglagesNfc() }
 
+        findViewById<ImageButton>(R.id.btnParametres).setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
+        }
+
         val btnRapportCompat = findViewById<Button>(R.id.btnRapportCompat)
         btnRapportCompat.setOnClickListener { copierRapportCompatibilite() }
 
@@ -177,6 +182,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        sessionDiagnostic.seuilScansAvantDefaillant = GestionnaireParametres.lireSeuilAvantDefaillant(this)
         if (!::nfcAdapter.isInitialized) return
 
         // NFC coupe dans les reglages : on le dit clairement au lieu de rester sur "Approche une bobine..."
@@ -465,7 +471,7 @@ class MainActivity : AppCompatActivity() {
         txtResultat.text = dernierDumpTexte
 
         if (detectionReussie) {
-            vibrerConfirmation()
+            if (GestionnaireParametres.lireVibrationFinLecture(this)) vibrerConfirmation()
             val couleurPourHistorique = infoFilament.couleurHex ?: ""
             enregistrerDansHistorique(uidHex, nomFilament ?: "Inconnu", couleurPourHistorique)
 
