@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5
+- Nouveau : nombre de passes de lecture reglable dans les Parametres (2, 3 ou 4, au lieu de 3 fixe). La valeur par defaut reste inchangee (3, calibree sur des retours terrain reels).
+- Precision : l'idee de copier des infos de diagnostic (modele du telephone, derniere lecture) n'a pas ete ajoutee car elle existe deja depuis la 1.8 via "Copier le rapport de compatibilite".
+
 ## 2.4
 - Nouveau : menu Parametres (icone engrenage). Seuil avant "Tag defaillant" reglable (2, 3 ou 4 mauvais scans consecutifs au lieu de 2 fixe), vibration de fin de lecture activable/desactivable, ecran "A propos" avec le numero de version.
 

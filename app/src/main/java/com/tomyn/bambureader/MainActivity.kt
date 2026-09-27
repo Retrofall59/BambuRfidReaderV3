@@ -183,6 +183,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         sessionDiagnostic.seuilScansAvantDefaillant = GestionnaireParametres.lireSeuilAvantDefaillant(this)
+        LecteurTagRobuste.MAX_PASSES = GestionnaireParametres.lireMaxPasses(this)
         if (!::nfcAdapter.isInitialized) return
 
         // NFC coupe dans les reglages : on le dit clairement au lieu de rester sur "Approche une bobine..."

@@ -135,6 +135,70 @@
 
         </androidx.cardview.widget.CardView>
 
+        <!-- Carte : nombre de passes de lecture -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="14dp"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="@color/carte_blanc">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Nombre de passes de lecture"
+                    android:textColor="@color/texte_principal"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Plus de passes = plus de chances de bien lire un tag capricieux, mais lecture plus lente. La valeur par defaut (3) est calibree sur des retours terrain reels : ne baisse qu'en connaissance de cause."
+                    android:textColor="@color/texte_secondaire"
+                    android:textSize="13sp" />
+
+                <RadioGroup
+                    android:id="@+id/groupeMaxPasses"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp">
+
+                    <RadioButton
+                        android:id="@+id/optionPasses2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/texte_principal"
+                        android:text="2 passes (plus rapide, moins tolerant)" />
+
+                    <RadioButton
+                        android:id="@+id/optionPasses3"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/texte_principal"
+                        android:text="3 passes (par defaut)" />
+
+                    <RadioButton
+                        android:id="@+id/optionPasses4"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/texte_principal"
+                        android:text="4 passes (plus tolerant, plus lent)" />
+
+                </RadioGroup>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
         <!-- Carte : a propos -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"

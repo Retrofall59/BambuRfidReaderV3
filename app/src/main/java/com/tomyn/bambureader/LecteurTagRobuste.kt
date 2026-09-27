@@ -56,7 +56,11 @@ data class ResultatLecture(
  */
 object LecteurTagRobuste {
 
-    const val MAX_PASSES = 3
+    /** Reglable depuis l'ecran Parametres (2 a 4). Valeur d'origine, calibree sur des retours
+     * terrain reels (POCO, etc.) : 3. Fourchette volontairement restreinte pour ne pas recreer
+     * les soucis de fiabilite deja corriges avec un reglage trop bas, ni ralentir excessivement
+     * chaque lecture avec un reglage trop haut. */
+    var MAX_PASSES = 3
     const val DETAIL_AUTH_REFUSEE = "authentification refusee"
     const val SECTEURS_ESSENTIELS = 2                // secteurs 0 et 1
     val BLOCS_ESSENTIELS = setOf(1, 2, 4, 5, 6)      // cf. BambuTagDecoder

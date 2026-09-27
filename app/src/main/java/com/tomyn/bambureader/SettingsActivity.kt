@@ -43,6 +43,25 @@ class SettingsActivity : AppCompatActivity() {
             GestionnaireParametres.ecrireVibrationFinLecture(this, active)
         }
 
+        val groupePasses = findViewById<RadioGroup>(R.id.groupeMaxPasses)
+        val passes2 = findViewById<RadioButton>(R.id.optionPasses2)
+        val passes3 = findViewById<RadioButton>(R.id.optionPasses3)
+        val passes4 = findViewById<RadioButton>(R.id.optionPasses4)
+
+        when (GestionnaireParametres.lireMaxPasses(this)) {
+            2 -> passes2.isChecked = true
+            4 -> passes4.isChecked = true
+            else -> passes3.isChecked = true
+        }
+        groupePasses.setOnCheckedChangeListener { _, checkedId ->
+            val valeur = when (checkedId) {
+                R.id.optionPasses2 -> 2
+                R.id.optionPasses4 -> 4
+                else -> 3
+            }
+            GestionnaireParametres.ecrireMaxPasses(this, valeur)
+        }
+
         findViewById<TextView>(R.id.texteVersion).text = try {
             val infos = packageManager.getPackageInfo(packageName, 0)
             "Bambu RFID Reader — version ${infos.versionName}"
