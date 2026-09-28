@@ -67,6 +67,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var layoutLignesInfo: LinearLayout
     private var dernierDumpTexte: String = ""
     private var dernierResume: String = ""
+    // Lignes ajoutees via ajouterLigneInfo(), dans l'ordre : sert a reconstruire l'affichage apres une
+    // rotation d'ecran (l'Activite est detruite puis recreee, layoutLignesInfo se vide sinon).
+    private val dernieresLignesInfo = mutableListOf<Pair<Int, String>>()
     private var dernierNomFilament: String? = null
 
     data class EtiquetteEnAttente(
@@ -113,6 +116,10 @@ class MainActivity : AppCompatActivity() {
         vuCouleur = findViewById(R.id.vuCouleur)
         imgNfc = findViewById(R.id.imgNfc)
         layoutLignesInfo = findViewById(R.id.layoutLignesInfo)
+
+        // Rotation d'ecran : l'Activite est detruite puis recreee par Android, ce qui effacerait le
+        // dernier resultat affiche (signale par RFN_31 sur le forum, v2.6). On le reconstruit a l'identique.
+        restaurerAffichageResultat(savedInstanceState)
 
         val btnExporter = findViewById<Button>(R.id.btnExporter)
         btnExporter.setOnClickListener { exporterDump() }
@@ -229,6 +236,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun ajouterLigneInfo(icone: Int, texte: String) {
+        dernieresLignesInfo.add(icone to texte)
         val ligne = LinearLayout(this)
         ligne.orientation = LinearLayout.HORIZONTAL
         ligne.gravity = Gravity.CENTER_VERTICAL
@@ -288,6 +296,7 @@ class MainActivity : AppCompatActivity() {
         runOnUiThread {
             arreterPulseNfc()
             layoutLignesInfo.removeAllViews()
+            dernieresLignesInfo.clear()
             txtResultat.visibility = View.GONE
             txtStatut.text = "Lecture en cours...\nNe bouge pas le telephone"
         }
@@ -1108,5 +1117,37 @@ class MainActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         contenuAExporter?.let { outState.putString("contenuAExporter", it) }
+
+        // Dernier resultat affiche (rotation d'ecran) : voir restaurerAffichageResultat().
+        outState.putString("txtResultatTexte", txtResultat.text.toString())
+        outState.putString("txtStatutTexte", txtStatut.text.toString())
+        val couleurVisible = vuCouleur.visibility == View.VISIBLE
+        outState.putBoolean("vuCouleurVisible", couleurVisible)
+        if (couleurVisible) {
+            outState.putInt("vuCouleurArgb", vuCouleur.backgroundTintList?.defaultColor ?: Color.TRANSPARENT)
+        }
+        outState.putIntArray("lignesInfoIcones", dernieresLignesInfo.map { it.first }.toIntArray())
+        outState.putStringArray("lignesInfoTextes", dernieresLignesInfo.map { it.second }.toTypedArray())
+    }
+
+    /** Reconstruit l'ecran de resultat apres une rotation (savedInstanceState != null), sans refaire de lecture NFC. */
+    private fun restaurerAffichageResultat(savedInstanceState: Bundle?) {
+        if (savedInstanceState == null) return
+
+        savedInstanceState.getString("txtResultatTexte")?.let { txtResultat.text = it }
+        savedInstanceState.getString("txtStatutTexte")?.let { txtStatut.text = it }
+
+        if (savedInstanceState.getBoolean("vuCouleurVisible")) {
+            vuCouleur.backgroundTintList = ColorStateList.valueOf(savedInstanceState.getInt("vuCouleurArgb"))
+            vuCouleur.visibility = View.VISIBLE
+            imgNfc.visibility = View.GONE
+        } else {
+            vuCouleur.visibility = View.GONE
+            imgNfc.visibility = View.VISIBLE
+        }
+
+        val icones = savedInstanceState.getIntArray("lignesInfoIcones") ?: IntArray(0)
+        val textes = savedInstanceState.getStringArray("lignesInfoTextes") ?: emptyArray()
+        for (i in icones.indices) ajouterLigneInfo(icones[i], textes.getOrElse(i) { "" })
     }
 }

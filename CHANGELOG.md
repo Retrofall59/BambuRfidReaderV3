@@ -1,6 +1,10 @@
 # Changelog
 
+## 2.6
+- Corrige : faire pivoter l'écran (portrait/paysage) pendant ou après une lecture faisait perdre le résultat affiché (l'appli le recalculait à vide). Le résultat complet (texte, couleur, lignes d'info) survit maintenant à une rotation, sans relire le tag. Signalé par RFN_31 sur le forum (Samsung Galaxy S25 FE) : utile en particulier pour lire une bobine sur l'AMS Lite en position horizontale puis repasser l'écran en vertical pour lire confortablement.
+
 ## 2.5
+- README : ajout d'une section Confidentialite (aucune requete reseau dans le code, permissions declarees, lecture de photo hors ligne).
 - Ajout du dossier tests/ (aucun changement dans l'appli elle-meme) : tests de la derivation des cles et du decodeur sur les donnees reelles d'une vraie bobine, en plus des tests existants du lecteur, du diagnostic et des couleurs.
 - Nouveau : nombre de passes de lecture reglable dans les Parametres (2, 3 ou 4, au lieu de 3 fixe). La valeur par defaut reste inchangee (3, calibree sur des retours terrain reels).
 - Precision : l'idee de copier des infos de diagnostic (modele du telephone, derniere lecture) n'a pas ete ajoutee car elle existe deja depuis la 1.8 via "Copier le rapport de compatibilite".

@@ -49,6 +49,7 @@ n'y est pas encore, n'hesite pas a partager ton retour pour qu'on l'ajoute : le 
 | POCO X8 Pro Max (Android 16) | Compatible, mais sensible a la position : il faut poser le telephone sans bouger sur le tag (testee sur PETG Basic) | Retour forum |
 | Xiaomi 15T Pro (Android 16) | Compatible : deux scans PLA propres, 16/16 secteurs en une seule passe | Retour forum - pleinair37 |
 | Samsung Galaxy A54 5G | Compatible (v2.1) : retirer le telephone seulement quand toutes les infos sont affichees, sinon lecture partielle | Retour forum - jcjames_13009 |
+| Samsung Galaxy S25 FE | Compatible | Retour forum - RFN_31 |
 
 ## Comment obtenir le .apk (le plus simple : sans rien installer)
 
@@ -145,6 +146,14 @@ Les seuils (4 echecs, plages de valeurs) sont des estimations non calibrees.
 
 Positions des blocs et algorithme de derivation des cles : 
 https://github.com/Bambu-Research-Group/RFID-Tag-Guide/blob/main/BambuLabRfid.md
+
+## Confidentialité
+
+- **Aucune connexion réseau** : le code de l'appli ne contient aucune requête réseau, ni outil de statistiques ou de suivi. Tout se passe sur le téléphone.
+- **Permissions déclarées par l'appli** (`AndroidManifest.xml`) : NFC (lire les tags) et vibration (retour de fin de lecture). Rien d'autre : ni contacts, ni position, ni accès général aux fichiers.
+- **Lecture de photo 100 % hors ligne** : la reconnaissance de texte (ML Kit) tourne sur le téléphone, avec son modèle embarqué dans l'APK (c'est pourquoi il est assez volumineux). Seule la photo que tu choisis toi-même est lue, et elle ne quitte pas le téléphone.
+- **Tes données restent chez toi** : l'historique des scans et les exports sont des fichiers locaux. Rien n'est envoyé nulle part, sauf si tu utilises toi-même « Partager » ou « Enregistrer sous ».
+- **Code ouvert** : tout ça se vérifie dans ce dépôt.
 
 ## Tests
 
