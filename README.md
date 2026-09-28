@@ -145,3 +145,7 @@ Les seuils (4 echecs, plages de valeurs) sont des estimations non calibrees.
 
 Positions des blocs et algorithme de derivation des cles : 
 https://github.com/Bambu-Research-Group/RFID-Tag-Guide/blob/main/BambuLabRfid.md
+
+## Tests
+
+Le dossier `tests/` contient les tests de non-régression (dérivation des clés, décodage, lecteur, diagnostic, couleurs). Voir `tests/README.md`.
