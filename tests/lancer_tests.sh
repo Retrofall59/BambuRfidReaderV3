@@ -13,7 +13,7 @@ ECHECS=0
 LOGIQUE="$SRC/AccesMifare.kt $SRC/AnalyseurCodes.kt $SRC/BambuKeyDeriver.kt $SRC/BambuTagDecoder.kt \
 $SRC/DiagnosticTag.kt $SRC/EquivalenceBambu.kt $SRC/LecteurTagRobuste.kt $SRC/MaterialIdLookup.kt $SRC/NomCouleur.kt"
 
-for t in TestDerivationCles TestDecodeurTag TestLecteurEtDiagnostic TestTablesCouleurs TestLibellesCouleurs TestScenarioReplay; do
+for t in TestDerivationCles TestNomCouleur TestDecodeurTag TestLecteurEtDiagnostic TestTablesCouleurs TestLibellesCouleurs TestScenarioReplay; do
   echo "=============== $t"
   if kotlinc -cp "$ANDROID_JAR" $t.kt $LOGIQUE -include-runtime -d "$TMP/$t.jar" 2>/dev/null; then
     java -jar "$TMP/$t.jar" > "$TMP/$t.txt" 2>&1

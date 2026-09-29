@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.10
+- Corrige : l'ASA blanc (#FFFFFF) n'était pas dans la table de désambiguïsation des couleurs, donc l'appli ne pouvait pas trancher entre les onze gammes Bambu qui partagent ce même hex et les listait toutes, concaténées sur l'étiquette imprimée (illisible). Signalé par Zetif sur le forum. L'ASA blanc affiche maintenant "White" comme les autres gammes.
+
 ## 2.9 — CORRECTIF URGENT
 - **Corrige un plantage introduit en v2.6** : l'appli plantait au démarrage sur **toute** rotation d'écran (ou toute recréation d'écran par Android). Cause : mon correctif de restauration de l'affichage (v2.6) appelait une fonction qui utilisait le bouton "Imprimer l'étiquette" avant que ce bouton soit initialisé. Mets à jour dès que possible si tu es en 2.6, 2.7 ou 2.8.
 

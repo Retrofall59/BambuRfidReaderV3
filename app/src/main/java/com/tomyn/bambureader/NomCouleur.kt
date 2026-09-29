@@ -19,7 +19,7 @@ object NomCouleur {
     // Chaque code hex pointe vers une liste de (mot-cle de gamme, nom officiel).
     // Quand une seule gamme utilise ce code, la liste n'a qu'un element.
     private val tableOfficielle: Map<String, List<Pair<String, String>>> = mapOf(
-        "FFFFFF" to listOf("Gradient" to "Arctic Whisper / Solar Breeze (degrade)", "PLA Basic" to "Jade White", "PLA Matte" to "Ivory White", "ABS" to "White", "TPU 90A" to "Frozen (bicolore)", "PLA Pure" to "Pure White", "PLA Silk" to "White", "PETG" to "White", "PLA Tough" to "White", "TPU for AMS" to "White", "TPU 95A HF" to "White"),
+        "FFFFFF" to listOf("Gradient" to "Arctic Whisper / Solar Breeze (degrade)", "PLA Basic" to "Jade White", "PLA Matte" to "Ivory White", "ABS" to "White", "ASA" to "White", "TPU 90A" to "Frozen (bicolore)", "PLA Pure" to "Pure White", "PLA Silk" to "White", "PETG" to "White", "PLA Tough" to "White", "TPU for AMS" to "White", "TPU 95A HF" to "White"),
         "F7E6DE" to listOf("" to "Beige"),
         "D1D3D5" to listOf("" to "Light Gray"),
         "A6A9AA" to listOf("" to "Silver"),
