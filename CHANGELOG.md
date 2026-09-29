@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.8
+- Corrige (suite du correctif 2.6) : après une rotation d'écran, les boutons Exporter, Copier et Partager annonçaient encore "scanne d'abord un tag" alors que le résultat était bien affiché. Cause : le texte à l'écran avait été restauré (v2.6), mais pas les variables internes que ces trois boutons lisent réellement (`dernierDumpTexte`, `dernierResume`), qui restaient vides après la recréation de l'écran. Elles sont maintenant restaurées elles aussi. Signalé par RFN_31 sur le forum (Samsung Galaxy S25 FE).
+
+## 2.7
+- Corrige : la file d'attente des étiquettes à imprimer ne survivait pas à une rotation d'écran (ni à un passage prolongé en arrière-plan), contrairement au résultat affiché déjà corrigé en v2.6. Résultat : "Imprimer une étiquette" pouvait répondre "Aucune étiquette en attente" alors qu'un scan réussi était visible à l'écran. Signalé par pascal_lb sur le forum (Redmi Note 12, Android 15).
+
 ## 2.6
 - Corrige : faire pivoter l'écran (portrait/paysage) pendant ou après une lecture faisait perdre le résultat affiché (l'appli le recalculait à vide). Le résultat complet (texte, couleur, lignes d'info) survit maintenant à une rotation, sans relire le tag. Signalé par RFN_31 sur le forum (Samsung Galaxy S25 FE) : utile en particulier pour lire une bobine sur l'AMS Lite en position horizontale puis repasser l'écran en vertical pour lire confortablement.
 

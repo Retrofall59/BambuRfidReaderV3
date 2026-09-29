@@ -973,6 +973,8 @@ class MainActivity : AppCompatActivity() {
     companion object {
         const val CODE_EXPORT = 4711
         const val CODE_PHOTO = 4712
+        /** Represente une valeur Int? nulle dans un IntArray de Bundle (qui ne peut pas contenir null). */
+        const val SENTINEL_NULL = Int.MIN_VALUE
         const val COLONNES_GRILLE = 3
         const val LIGNES_GRILLE = 7
         const val ETIQUETTES_PAR_PAGE = COLONNES_GRILLE * LIGNES_GRILLE
@@ -1119,7 +1121,8 @@ class MainActivity : AppCompatActivity() {
         contenuAExporter?.let { outState.putString("contenuAExporter", it) }
 
         // Dernier resultat affiche (rotation d'ecran) : voir restaurerAffichageResultat().
-        outState.putString("txtResultatTexte", txtResultat.text.toString())
+        outState.putString("dernierDumpTexte", dernierDumpTexte)
+        outState.putString("dernierResume", dernierResume)
         outState.putString("txtStatutTexte", txtStatut.text.toString())
         val couleurVisible = vuCouleur.visibility == View.VISIBLE
         outState.putBoolean("vuCouleurVisible", couleurVisible)
@@ -1128,13 +1131,24 @@ class MainActivity : AppCompatActivity() {
         }
         outState.putIntArray("lignesInfoIcones", dernieresLignesInfo.map { it.first }.toIntArray())
         outState.putStringArray("lignesInfoTextes", dernieresLignesInfo.map { it.second }.toTypedArray())
+
+        // File d'attente des etiquettes (meme bug que le resultat affiche : plusieurs scans peuvent
+        // s'accumuler avant l'impression, tout serait perdu a la rotation sinon). Signale par pascal_lb.
+        outState.putStringArray("etiquettesNomFilament", filesAttenteEtiquettes.map { it.nomFilament }.toTypedArray())
+        outState.putStringArray("etiquettesNomCouleur", filesAttenteEtiquettes.map { it.nomCouleur }.toTypedArray())
+        outState.putIntArray("etiquettesCouleurArgb", filesAttenteEtiquettes.map { it.couleurArgb ?: SENTINEL_NULL }.toIntArray())
+        outState.putStringArray("etiquettesCodeHexa", filesAttenteEtiquettes.map { it.codeHexa }.toTypedArray())
+        outState.putIntArray("etiquettesPoidsGrammes", filesAttenteEtiquettes.map { it.poidsGrammes ?: SENTINEL_NULL }.toIntArray())
+        outState.putStringArray("etiquettesTempBuseTexte", filesAttenteEtiquettes.map { it.tempBuseTexte }.toTypedArray())
+        outState.putIntArray("etiquettesTempPlateau", filesAttenteEtiquettes.map { it.tempPlateau ?: SENTINEL_NULL }.toIntArray())
     }
 
     /** Reconstruit l'ecran de resultat apres une rotation (savedInstanceState != null), sans refaire de lecture NFC. */
     private fun restaurerAffichageResultat(savedInstanceState: Bundle?) {
         if (savedInstanceState == null) return
 
-        savedInstanceState.getString("txtResultatTexte")?.let { txtResultat.text = it }
+        savedInstanceState.getString("dernierDumpTexte")?.let { dernierDumpTexte = it; txtResultat.text = it }
+        savedInstanceState.getString("dernierResume")?.let { dernierResume = it }
         savedInstanceState.getString("txtStatutTexte")?.let { txtStatut.text = it }
 
         if (savedInstanceState.getBoolean("vuCouleurVisible")) {
@@ -1149,5 +1163,27 @@ class MainActivity : AppCompatActivity() {
         val icones = savedInstanceState.getIntArray("lignesInfoIcones") ?: IntArray(0)
         val textes = savedInstanceState.getStringArray("lignesInfoTextes") ?: emptyArray()
         for (i in icones.indices) ajouterLigneInfo(icones[i], textes.getOrElse(i) { "" })
+
+        val nomsFilament = savedInstanceState.getStringArray("etiquettesNomFilament") ?: emptyArray()
+        val nomsCouleur = savedInstanceState.getStringArray("etiquettesNomCouleur") ?: emptyArray()
+        val couleursArgb = savedInstanceState.getIntArray("etiquettesCouleurArgb") ?: IntArray(0)
+        val codesHexa = savedInstanceState.getStringArray("etiquettesCodeHexa") ?: emptyArray()
+        val poids = savedInstanceState.getIntArray("etiquettesPoidsGrammes") ?: IntArray(0)
+        val tempsBuse = savedInstanceState.getStringArray("etiquettesTempBuseTexte") ?: emptyArray()
+        val tempsPlateau = savedInstanceState.getIntArray("etiquettesTempPlateau") ?: IntArray(0)
+        for (i in nomsFilament.indices) {
+            filesAttenteEtiquettes.add(
+                EtiquetteEnAttente(
+                    nomFilament = nomsFilament[i],
+                    nomCouleur = nomsCouleur.getOrNull(i),
+                    couleurArgb = couleursArgb.getOrNull(i)?.takeIf { it != SENTINEL_NULL },
+                    codeHexa = codesHexa.getOrNull(i),
+                    poidsGrammes = poids.getOrNull(i)?.takeIf { it != SENTINEL_NULL },
+                    tempBuseTexte = tempsBuse.getOrNull(i),
+                    tempPlateau = tempsPlateau.getOrNull(i)?.takeIf { it != SENTINEL_NULL }
+                )
+            )
+        }
+        mettreAJourBoutonImpression()
     }
 }
