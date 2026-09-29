@@ -117,10 +117,6 @@ class MainActivity : AppCompatActivity() {
         imgNfc = findViewById(R.id.imgNfc)
         layoutLignesInfo = findViewById(R.id.layoutLignesInfo)
 
-        // Rotation d'ecran : l'Activite est detruite puis recreee par Android, ce qui effacerait le
-        // dernier resultat affiche (signale par RFN_31 sur le forum, v2.6). On le reconstruit a l'identique.
-        restaurerAffichageResultat(savedInstanceState)
-
         val btnExporter = findViewById<Button>(R.id.btnExporter)
         btnExporter.setOnClickListener { exporterDump() }
 
@@ -149,6 +145,12 @@ class MainActivity : AppCompatActivity() {
 
         val btnRapportCompat = findViewById<Button>(R.id.btnRapportCompat)
         btnRapportCompat.setOnClickListener { copierRapportCompatibilite() }
+
+        // Rotation d'ecran : l'Activite est detruite puis recreee par Android, ce qui effacerait le
+        // dernier resultat affiche (signale par RFN_31 sur le forum, v2.6). On le reconstruit a l'identique.
+        // Doit venir APRES l'initialisation de tous les boutons ci-dessus (mettreAJourBoutonImpression()
+        // en depend) : plus haut, ca plantait au demarrage sur toute rotation d'ecran.
+        restaurerAffichageResultat(savedInstanceState)
 
         demarrerPulseNfc()
 

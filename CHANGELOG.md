@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.9 — CORRECTIF URGENT
+- **Corrige un plantage introduit en v2.6** : l'appli plantait au démarrage sur **toute** rotation d'écran (ou toute recréation d'écran par Android). Cause : mon correctif de restauration de l'affichage (v2.6) appelait une fonction qui utilisait le bouton "Imprimer l'étiquette" avant que ce bouton soit initialisé. Mets à jour dès que possible si tu es en 2.6, 2.7 ou 2.8.
+
 ## 2.8
 - Corrige (suite du correctif 2.6) : après une rotation d'écran, les boutons Exporter, Copier et Partager annonçaient encore "scanne d'abord un tag" alors que le résultat était bien affiché. Cause : le texte à l'écran avait été restauré (v2.6), mais pas les variables internes que ces trois boutons lisent réellement (`dernierDumpTexte`, `dernierResume`), qui restaient vides après la recréation de l'écran. Elles sont maintenant restaurées elles aussi. Signalé par RFN_31 sur le forum (Samsung Galaxy S25 FE).
 
